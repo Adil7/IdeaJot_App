@@ -9,8 +9,6 @@ const session = require('express-session');
 //initialize app
 const app = express();
 
-conolse.log('this is a test git commit');
-
 //Map global promise = get rid of warning
 mongoose.Promise = global.Promise;
 //Connect to mongoose
