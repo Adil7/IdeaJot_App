@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path'); // joins file paths //for the public folder
 const exphbs = require('express-handlebars');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -6,8 +7,13 @@ const methodOverride = require('method-override')
 const flash = require('connect-flash');
 const session = require('express-session');
 
+
 //initialize app
 const app = express();
+
+//Load Routes
+const ideas = require('./routes/ideas');
+const users = require('./routes/users');
 
 //Map global promise = get rid of warning
 mongoose.Promise = global.Promise;
@@ -18,11 +24,12 @@ mongoose.connect('mongodb://localhost/vidjot-db', {})
   })
   .catch(err => console.log(err));
 
-//Load Idea model in the model folder
-require('./models/Idea');
-const Idea = mongoose.model('ideas');
+
 
 //----------Middleware----------
+
+// Static folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 //Handle bars middleware
 app.engine('handlebars', exphbs({
@@ -83,95 +90,12 @@ app.get('/about', (req, res) => {
   res.render('about');
 });
 
-// Idea Index Page Routes // we want all of them, pass in empty
-app.get('/ideas', (req, res) => {
-  Idea.find({})
-    .sort({date:'desc'})
-    .then(ideas => {
-      res.render('ideas/index', {
-        ideas:ideas
-      });
-    });
-});
 
 
-//----------From Process----------
-//Add idea form
-app.get('/ideas/add', (req, res) => {
-  res.render('ideas/add');
-});
 
-//Edit idea form
-app.get('/ideas/edit/:id', (req, res) => {
-  Idea.findOne({  //we want to pass an object with a query, match it to the id
-    _id: req.params.id // it gets id
-  })
-  .then(idea => {
-    res.render('ideas/edit', {
-      idea:idea
-    });
-  });
-});
-
-// Process Form, making post request
-app.post('/ideas', (req, res) => {
-  let errors = [];
-
-  if(!req.body.title){
-    errors.push({text:'Please add a title'});
-  }
-  if(!req.body.details){
-    errors.push({text:'Please add some details'});
-  }
-
-  if(errors.length > 0){
-    res.render('ideas/add', {
-      errors: errors,
-      title: req.body.title,
-      details: req.body.details
-    });
-  } else {
-    const newUser = {
-      title: req.body.title,
-      details: req.body.details
-    }
-    new Idea(newUser) // set newUser to object
-      .save()
-      .then(idea => { // its gonna return a promise
-        req.flash('success_msg', 'Video idea updated'); // send message for update
-        res.redirect('/ideas'); // return ideas, redirected to /ideas
-      })
-  }
-});
-
-// Edit form Process, put requests
-app.put('/ideas/:id', (req,res) => {
-  //res.send('PUT');
-  Idea.findOne({
-    _id: req.params.id
-  })
-  .then(idea => {
-    //new values
-    idea.title = req.body.title;
-    idea.details = req.body.details;
-
-    idea.save()
-      .then(idea => {
-        res.redirect('/ideas');
-      }) //returns promise
-  });
-}); // we cant just chnage the method to put, we need help from the ovirride module
-// override using query value
-
-
-// Delete Idea
-app.delete('/ideas/:id', (req, res) => {
-  Idea.remove({_id: req.params.id})
-    .then(() => {
-      req.flash('success_msg', 'Video idea removed');
-      res.redirect('/ideas');
-    });
-});
+// Using routes
+app.use('/ideas', ideas); // it will go to the idea route, through linking
+app.use('/users', users);
 
 
 //----------Port----------
