@@ -1,6 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+//const passport = require('passport');
 const router = express.Router();
+
+// Load User Model
+require('../models/User');
+// load the model into var, and load users models
+const User = mongoose.model('users');
 
 // User Login Route
 router.get('/login', (req, res) => {
@@ -42,7 +49,43 @@ router.post('/register', (req, res) => {
       password2: req.body.password2
     });
   } else {
-    res.send('passed');
+    // double email check
+    User.findOne({email: req.body.email})
+      .then (user => {
+        if (user){ // cehck for user if there is this email present
+          req.flash('error_msg', 'Email already registered');
+          res.redirect('/users/register');
+        } else {
+          // new user object from our form field
+          const newUser =  User ({ // when we create this object we need to wrap it in ()
+            name: req.body.name, // pass in the parameters
+            email: req.body.email,
+            password: req.body.password,
+          });
+          // encrpt password using bcryptjs, how many params, then function
+          bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(newUser.password, salt, (err, hash) => {
+              if (err) throw err;
+              newUser.password = hash ; // store hash pass in db, then we must save it
+              newUser.save() // returns a promise
+                .then(user => {
+                  req.flash('succes_msg', 'You are now registered and can login');
+                  res.redirect('/users/login');
+                })
+                .catch(err => {
+                  console.log(err);
+                  return;
+                });
+            });
+
+          });
+          //res.send('passed'); // handle this
+        }
+      });
+
+
+
+
   }
 });
 
