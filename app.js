@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const methodOverride = require('method-override')
 const flash = require('connect-flash');
 const session = require('express-session');
-
+const passport = require('passport')
 
 //initialize app
 const app = express();
@@ -54,6 +54,12 @@ app.use(session({
   saveUninitialized: true
 }));
 
+// Passport middleware
+// important this is afer express session Middleware
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 // from const flash
 app.use(flash());
 
@@ -63,6 +69,7 @@ app.use(function(req, res, next){
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
   res.locals.error = req.flash('error');
+  res.locals.user = req.user || null; // when you login and see the navbar options
   next(); // we call next for the next middleware piece
 });
 
@@ -91,11 +98,14 @@ app.get('/about', (req, res) => {
 });
 
 
-
-
 // Using routes
 app.use('/ideas', ideas); // it will go to the idea route, through linking
 app.use('/users', users);
+
+
+// Passport Config
+require('./config/passport')(passport);
+
 
 
 //----------Port----------

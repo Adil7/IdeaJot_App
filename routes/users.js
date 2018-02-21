@@ -19,6 +19,16 @@ router.get('/register', (req, res) => {
   res.render('users/register');
 });
 
+
+// Login Form POST
+router.post('/login', (req, res, next) => {
+  passport.authenticate('local', {
+    successRedirect:'/ideas',
+    failureRedirect: '/users/login',
+    failureFlash: true
+  })(req, res, next);
+});
+
 // Register form post
 // console.log(req.body); // print out form content
 //   res.send('register');
@@ -69,7 +79,7 @@ router.post('/register', (req, res) => {
               newUser.password = hash ; // store hash pass in db, then we must save it
               newUser.save() // returns a promise
                 .then(user => {
-                  req.flash('succes_msg', 'You are now registered and can login');
+                  req.flash('success_msg', 'You are now registered and can login');
                   res.redirect('/users/login');
                 })
                 .catch(err => {
