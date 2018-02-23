@@ -5,7 +5,6 @@ const methodOverride = require('method-override')
 const flash = require('connect-flash');
 const session = require('express-session');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
 const passport = require('passport')
 
 //initialize app
@@ -25,12 +24,14 @@ const db = require('./config/database');
 //Map global promise = get rid of warning
 mongoose.Promise = global.Promise;
 //Connect to mongoose
-mongoose.connect(db.mongoURI, {})
-  .then(function() {
-    console.log("MongoDB connected ...");
-  })
-  .catch(err => console.log(err + ' caught an error'));
 
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb://mongodb://<ai>:<myDatabase>@ds147118.mlab.com:47118/ideajot-prod', {
+
+  })
+  .then(() => console.log('connection successful'))
+  .catch((err) => console.error(err));
 
 
 //----------Middleware----------
