@@ -4,13 +4,19 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
+// use destructuring
+// add this as a second parameter to any route we want to protect
+const {ensureAuthenticated} = require('../helpers/auth');
+
+
+
 
 //Load Idea model in the model folder
 require('../models/Idea'); // we need to go outside the folder--> use '../'
 const Idea = mongoose.model('ideas');
 
 // Idea Index Page Routes // we want all of them, pass in empty
-router.get('/', (req, res) => {
+router.get('/', ensureAuthenticated, (req, res) => {
   Idea.find({})
     .sort({date:'desc'})
     .then(ideas => {
@@ -23,12 +29,12 @@ router.get('/', (req, res) => {
 
 //----------From Process----------
 //Add idea form
-router.get('/add', (req, res) => {
+router.get('/add', ensureAuthenticated, (req, res) => {
   res.render('ideas/add');
 });
 
 //Edit idea form
-router.get('/edit/:id', (req, res) => {
+router.get('/edit/:id', ensureAuthenticated, (req, res) => {
   Idea.findOne({  //we want to pass an object with a query, match it to the id
     _id: req.params.id // it gets id
   })
@@ -40,7 +46,7 @@ router.get('/edit/:id', (req, res) => {
 });
 
 // Process Form, making post request
-router.post('/', (req, res) => {
+router.post('/', ensureAuthenticated, (req, res) => {
   let errors = [];
 
   if(!req.body.title){
@@ -71,7 +77,7 @@ router.post('/', (req, res) => {
 });
 
 // Edit form Process, put requests
-router.put('/:id', (req,res) => {
+router.put('/:id', ensureAuthenticated , (req,res) => {
   //res.send('PUT');
   Idea.findOne({
     _id: req.params.id
@@ -92,7 +98,7 @@ router.put('/:id', (req,res) => {
 
 
 // Delete Idea
-router.delete('/:id', (req, res) => {
+router.delete('/:id', ensureAuthenticated, (req, res) => {
   Idea.remove({_id: req.params.id})
     .then(() => {
       req.flash('success_msg', 'Video idea removed');
