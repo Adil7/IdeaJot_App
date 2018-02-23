@@ -21,17 +21,17 @@ require('./config/passport')(passport);
 //DB config for mlab
 const db = require('./config/database');
 
-//Map global promise = get rid of warning
-mongoose.Promise = global.Promise;
-//Connect to mongoose
 
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://mongodb://<ai>:<myDatabase>@ds147118.mlab.com:47118/ideajot-prod', {
-
-  })
-  .then(() => console.log('connection successful'))
-  .catch((err) => console.error(err));
+// Map global promise - get rid of warning
+mongoose.Promise = global.Promise;
+// Connect to mongoose
+mongoose.connect(db.mongoURI, {
+  useMongoClient: true
+})
+  .then(() => console.log('MongoDB Connected...'))
+  .catch(err => console.log(err));
 
 
 //----------Middleware----------
