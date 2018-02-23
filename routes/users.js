@@ -29,57 +29,55 @@ router.post('/login', (req, res, next) => {
   })(req, res, next);
 });
 
-// Register form post
-// console.log(req.body); // print out form content
-//   res.send('register');
 
-
-
+// Register Form POST
 router.post('/register', (req, res) => {
   let errors = [];
 
-    // check if the password matches password2
+  // check if the password matches password2
     // push a object with text, passes do not matches
   if(req.body.password != req.body.password2){
     errors.push({text:'Passwords do not match'});
   }
-
   // check the length of the password for being too short, must be atleast 4 chars
   if(req.body.password.length < 4){
     errors.push({text:'Password must be at least 4 characters'});
   }
-
   // check if the error array has anything in it, if its greater than zero we re render the form
   if(errors.length > 0){
     res.render('users/register', {
       errors: errors,
-      name: req.body.name, // pass in the parameters
+      name: req.body.name,
       email: req.body.email,
       password: req.body.password,
       password2: req.body.password2
     });
   } else {
-    // double email check
+        // double email check
     User.findOne({email: req.body.email})
-      .then (user => {
-        if (user){ // cehck for user if there is this email present
-          req.flash('error_msg', 'Email already registered');
+      .then(user => {
+        // check for user if there is this email present
+        if(user){
+          req.flash('error_msg', 'Email already regsitered');
           res.redirect('/users/register');
         } else {
-          // new user object from our form field
-          const newUser =  User ({ // when we create this object we need to wrap it in ()
-            name: req.body.name, // pass in the parameters
+// new user object from our form field
+// when we create this object we need to wrap it in ()
+ // pass in the parameters
+          const newUser = new User({
+            name: req.body.name,
             email: req.body.email,
-            password: req.body.password,
+            password: req.body.password
           });
           // encrpt password using bcryptjs, how many params, then function
           bcrypt.genSalt(10, (err, salt) => {
             bcrypt.hash(newUser.password, salt, (err, hash) => {
-              if (err) throw err;
-              newUser.password = hash ; // store hash pass in db, then we must save it
-              newUser.save() // returns a promise
+              if(err) throw err;
+// store hash pass in db, then we must save it
+              newUser.password = hash;
+              newUser.save()
                 .then(user => {
-                  req.flash('success_msg', 'You are now registered and can login');
+                  req.flash('success_msg', 'You are now registered and can log in');
                   res.redirect('/users/login');
                 })
                 .catch(err => {
@@ -87,17 +85,12 @@ router.post('/register', (req, res) => {
                   return;
                 });
             });
-
           });
-          //res.send('passed'); // handle this
         }
       });
-
-
-
-
   }
 });
+
 
 
 // Logout User Functionality

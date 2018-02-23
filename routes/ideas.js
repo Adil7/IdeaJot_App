@@ -16,8 +16,9 @@ require('../models/Idea'); // we need to go outside the folder--> use '../'
 const Idea = mongoose.model('ideas');
 
 // Idea Index Page Routes // we want all of them, pass in empty
+// this is where we list/get ideas
 router.get('/', ensureAuthenticated, (req, res) => {
-  Idea.find({})
+  Idea.find({user: req.user.id})
     .sort({date:'desc'})
     .then(ideas => {
       res.render('ideas/index', {
@@ -25,6 +26,7 @@ router.get('/', ensureAuthenticated, (req, res) => {
       });
     });
 });
+
 
 
 //----------From Process----------
@@ -35,15 +37,22 @@ router.get('/add', ensureAuthenticated, (req, res) => {
 
 //Edit idea form
 router.get('/edit/:id', ensureAuthenticated, (req, res) => {
-  Idea.findOne({  //we want to pass an object with a query, match it to the id
-    _id: req.params.id // it gets id
+  Idea.findOne({
+    _id: req.params.id
   })
   .then(idea => {
-    res.render('ideas/edit', {
-      idea:idea
-    });
+    if(idea.user != req.user.id){
+      req.flash('error_msg', 'Not Authorized');
+      res.redirect('/ideas');
+    } else {
+      res.render('ideas/edit', {
+        idea:idea
+      });
+    }
+
   });
 });
+
 
 // Process Form, making post request
 router.post('/', ensureAuthenticated, (req, res) => {
@@ -57,7 +66,7 @@ router.post('/', ensureAuthenticated, (req, res) => {
   }
 
   if(errors.length > 0){
-    res.render('ideas/add', {
+    res.render('/add', {
       errors: errors,
       title: req.body.title,
       details: req.body.details
@@ -65,11 +74,12 @@ router.post('/', ensureAuthenticated, (req, res) => {
   } else {
     const newUser = {
       title: req.body.title,
-      details: req.body.details
+      details: req.body.details,
+      user: req.user.id
     }
     new Idea(newUser) // set newUser to object
       .save()
-      .then(idea => { // its gonna return a promise
+      .then(idea => {  // its gonna return a promise
         req.flash('success_msg', 'Video idea added'); // send message for added
         res.redirect('/ideas'); // return ideas, redirected to /ideas
       })
@@ -77,24 +87,25 @@ router.post('/', ensureAuthenticated, (req, res) => {
 });
 
 // Edit form Process, put requests
-router.put('/:id', ensureAuthenticated , (req,res) => {
-  //res.send('PUT');
+router.put('/:id', ensureAuthenticated, (req, res) => {
   Idea.findOne({
     _id: req.params.id
   })
   .then(idea => {
-    //new values
+    // new values
     idea.title = req.body.title;
     idea.details = req.body.details;
 
     idea.save()
       .then(idea => {
-        req.flash('success_msg', 'Video idea updated'); // send message for updated
+        req.flash('success_msg', 'Video idea updated');
         res.redirect('/ideas');
-      }) //returns promise
+      })
   });
-}); // we cant just chnage the method to put, we need help from the ovirride module
+});
+// we cant just chnage the method to put, we need help from the ovirride module
 // override using query value
+ //returns promise
 
 
 // Delete Idea
@@ -105,6 +116,5 @@ router.delete('/:id', ensureAuthenticated, (req, res) => {
       res.redirect('/ideas');
     });
 });
-
 
 module.exports = router;
