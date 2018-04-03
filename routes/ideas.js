@@ -42,7 +42,7 @@ router.get('/edit/:id', ensureAuthenticated, (req, res) => {
   })
   .then(idea => {
     if(idea.user != req.user.id){
-      req.flash('error_msg', 'Not Authorized');
+      req.flash('error_msg', 'Not Authorized, please login with a valid account');
       res.redirect('/ideas');
     } else {
       res.render('ideas/edit', {
@@ -80,7 +80,7 @@ router.post('/', ensureAuthenticated, (req, res) => {
     new Idea(newUser) // set newUser to object
       .save()
       .then(idea => {  // its gonna return a promise
-        req.flash('success_msg', 'Video idea added'); // send message for added
+        req.flash('success_msg', 'Your idea has been added'); // send message for added
         res.redirect('/ideas'); // return ideas, redirected to /ideas
       })
   }
@@ -98,7 +98,7 @@ router.put('/:id', ensureAuthenticated, (req, res) => {
 
     idea.save()
       .then(idea => {
-        req.flash('success_msg', 'Video idea updated');
+        req.flash('success_msg', 'Your idea has been updated');
         res.redirect('/ideas');
       })
   });
@@ -113,7 +113,7 @@ router.put('/:id', ensureAuthenticated, (req, res) => {
 router.delete('/:id', ensureAuthenticated, (req, res) => {
   Idea.remove({_id: req.params.id})
     .then(() => {
-      req.flash('success_msg', 'Video idea removed');
+      req.flash('success_msg', 'Idea removed');
       res.redirect('/ideas');
     });
 });
