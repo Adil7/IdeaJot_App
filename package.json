@@ -2,7 +2,7 @@
   "name": "vidjot",
   "version": "1.0.0",
   "description": "App to jot down ideas",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "start": "node app.js"
   },
